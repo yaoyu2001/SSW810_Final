@@ -8,8 +8,7 @@ from prettytable import PrettyTable
 
 class Student:
     """Define a class as student to indicate a student"""
-    PT_FIELDS = ["CWID", "Name", "Completed Courses", "Remaining Required", "Remaining Elective"]
-    GRADE_PASS = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C']
+    PT_FIELDS = ["CWID", "Name", "Major", "Completed Courses", "Remaining Required", "Remaining Elective"]
 
     def __init__(self, CWID, Name, Major):
         self._CWID, self._Name, self._Major = CWID, Name, Major
@@ -32,11 +31,11 @@ class Student:
                     self._course_elective = None
 
     def pt_row(self):
-
+        """Give one line in table of a student"""
         if self._course_elective is not None:
-            return [self._CWID, self._Name, sorted(self._completed_courses), sorted(self._course_require.keys()), sorted(self._course_elective.keys())]
+            return [self._CWID, self._Name, self._Major, sorted(self._completed_courses), sorted(self._course_require.keys()), sorted(self._course_elective.keys())]
         else:
-            return [self._CWID, self._Name, sorted(self._completed_courses), sorted(self._course_require.keys()), "None"]
+            return [self._CWID, self._Name, self._Major, sorted(self._completed_courses), sorted(self._course_require.keys()), "None"]
 
 
 class Instructor:
@@ -57,7 +56,7 @@ class Instructor:
 
 class Course:
     PT_FIELDS = ["Dept", "Required", "Elective"]
-
+    """Define a class to show courses"""
     def __init__(self, name, _type, major):
         self._name = name
         self._type = _type
@@ -83,7 +82,7 @@ def file_reading_gen(path, fields=3, sep='\t', header=False):
 # A class to store all students instructors and grades
 class Repository:
     def __init__(self, path, pttable=False):
-        # Two containers to store data
+        # Containers to store data
         self._students = dict()
         self._instructors = dict()
         self._courses = dict()
@@ -159,10 +158,6 @@ class Repository:
                     elif course._type == "E":
                         student._course_elective[course._name] = course
             student.course_match()
-            # print(student._Name)
-            # print(student._completed_courses)
-            # print(student._course_require)
-            # print(student._course_elective)
 
     def _students_prettytable(self):
         """Print student table"""
@@ -210,5 +205,5 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
+
