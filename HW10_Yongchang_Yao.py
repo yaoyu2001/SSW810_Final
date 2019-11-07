@@ -55,12 +55,25 @@ class Instructor:
 
 
 class Course:
-    PT_FIELDS = ["Dept", "Required", "Elective"]
+
     """Define a class to show courses"""
     def __init__(self, name, _type, major):
         self._name = name
         self._type = _type
         self._major = major
+
+
+class Major:
+    PT_FIELDS = ["Dept", "Required", "Elective"]
+    """Define a class to show major"""
+    def __init__(self, name):
+        self._name = name
+        self.required = dict()
+        self.elective = dict()
+
+    def pt_row(self):
+        """Give one line in table of a Major"""
+        return [self._name, sorted(self.required.keys()), sorted(self.elective.keys())]
 
 
 def file_reading_gen(path, fields=3, sep='\t', header=False):
@@ -87,12 +100,14 @@ class Repository:
         self._instructors = dict()
         self._courses = dict()
         self._majors = set()
+        self._majors_class = set()
         # Read data from file
         self._get_students(os.path.join(path, "students.txt"))
         self._get_instructors(os.path.join(path, "instructors.txt"))
         self._get_grade(os.path.join(path, "grades.txt"))
         self._get_course(os.path.join(path, "majors.txt"))
         self._grade_match()
+        self._get_majors()
 
         if pttable:
             self._majors_prettytable()
@@ -103,7 +118,7 @@ class Repository:
         """Read students and populate self._students"""
         try:
             for cwid, name, major in file_reading_gen(path, 3, sep=";",header=True):
-                self._students[cwid] = Student(cwid,name,major)
+                self._students[cwid] = Student(cwid, name, major)
         except FileNotFoundError as fnfe:
             print(fnfe)
         except ValueError as ve:
@@ -139,6 +154,7 @@ class Repository:
             print(ve)
 
     def _get_course(self, path):
+        """Get course and major info from data file"""
         try:
             for major,type,course_name in file_reading_gen(path,3,sep='\t',header=True):
                 self._courses[course_name] = Course(course_name, type, major)
@@ -147,6 +163,18 @@ class Repository:
             print(fnfe)
         except ValueError as ve:
             print(ve)
+
+    def _get_majors(self):
+        """Add courses in major"""
+        for major in self._majors:
+            self._majors_class.add(Major(major))
+        for major in self._majors_class:
+            for course in self._courses.values():
+                if course._major == major._name:
+                    if course._type == "R":
+                        major.required[course._name] = course
+                    elif course._type == "E":
+                        major.elective[course._name] = course
 
     def _grade_match(self):
         """March grade for all students"""
@@ -181,17 +209,9 @@ class Repository:
 
     def _majors_prettytable(self):
         """Print major summary"""
-        pt = PrettyTable(field_names=Course.PT_FIELDS)
-        for major in self._majors:
-            required = set()
-            elective = set()
-            for course in self._courses.values():
-                if course._major == major:
-                    if course._type == "R":
-                        required.add(course._name)
-                    elif course._type == "E":
-                        elective.add(course._name)
-            pt.add_row([major, sorted(required), sorted(elective)])
+        pt = PrettyTable(field_names=Major.PT_FIELDS)
+        for major in self._majors_class:
+            pt.add_row(major.pt_row())
 
         print("Major summary")
         print(pt)
