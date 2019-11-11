@@ -159,7 +159,7 @@ class Repository:
     def _get_students(self,path):
         """Read students and populate self._students"""
         try:
-            for cwid, name, major in file_reading_gen(path, 3, sep=";",header=True):
+            for cwid, name, major in file_reading_gen(path, 3, sep="\t",header=True):
                 if major not in self._majors:
                     print(f"Student {CWID}'{name}' has unknown major '{major}'")
                 else:
@@ -255,13 +255,22 @@ class Repository:
         print("Major summary")
         print(pt)
 
+    def instructor_table_db(self, db_path):
+        """create a new instructor PrettyTable that retrieves the data for the table from the database"""
+        db = sqlite3.connect(db_path)
+        pt = PrettyTable(field_names=Instructor.PT_FIELDS)
+        for row in db.execute("select CWID,Name,Dept,Courses,Students from Instructors_summary"):
+            pt.add_row(list(row))
+        print("Instructor summary from database")
+        print(pt)
+
 
 def main():
     """Get paths"""
     directory = os.getcwd()
-
+    DB_FILE = "G:\Interview\Data\810_startup.db"
     stevens = Repository(directory, pttable=True)
-
+    stevens.instructor_table_db(DB_FILE)
 
 if __name__ == '__main__':
     main()
