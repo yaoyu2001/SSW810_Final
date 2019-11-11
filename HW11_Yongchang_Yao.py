@@ -172,7 +172,7 @@ class Repository:
     def _get_instructors(self, path):
         """Read instructors and populate self._instructors"""
         try:
-            for cwid, name, dept in file_reading_gen(path, 3, sep="|", header=True):
+            for cwid, name, dept in file_reading_gen(path, 3, sep="\t", header=True):
                 self._instructors[cwid] = Instructor(cwid, name, dept)
         except FileNotFoundError as fnfe:
             print(fnfe)
@@ -181,7 +181,7 @@ class Repository:
 
     def _get_grade(self, path):
         try:
-            for student_cwid, course, grade, instructor_cwid in file_reading_gen(path,4,sep='|',header=True):
+            for student_cwid, course, grade, instructor_cwid in file_reading_gen(path,4,sep='\t',header=True):
 
                 try:
                     self._students[student_cwid].add_course(course, grade)
