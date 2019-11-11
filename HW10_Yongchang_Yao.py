@@ -20,22 +20,23 @@ class Student:
     def add_course(self, course, grade):
         self._course_rank[course] = grade
 
-    def course_match(self):
-        """According to grade and type to get courses list of a student"""
-        for name, grade in self._course_rank.items():
-            if grade in ['A', 'A-', 'B+', 'B', 'B-', 'C+','C']:
-                self._completed_courses.add(name)
-                if name in self._course_require.keys():
-                    self._course_require.pop(name)
-                if name in self._course_elective.keys():
-                    self._course_elective = None
+    # def course_match(self):
+    #     """According to grade and type to get courses list of a student"""
+    #     for name, grade in self._course_rank.items():
+    #         if grade in ['A', 'A-', 'B+', 'B', 'B-', 'C+','C']:
+    #             self._completed_courses.add(name)
+    #             if name in self._course_require.keys():
+    #                 self._course_require.pop(name)
+    #             if name in self._course_elective.keys():
+    #                 self._course_elective = None
 
     def pt_row(self):
         """Give one line in table of a student"""
-        if self._course_elective is not None:
-            return [self._CWID, self._Name, self._Major, sorted(self._completed_courses), sorted(self._course_require.keys()), sorted(self._course_elective.keys())]
+        major, passed, rem_required, rem_electives = self._Major.remaining(self._course_rank)
+        if rem_electives is not None:
+            return [self._CWID, self._Name, major, sorted(passed), rem_required, rem_electives]
         else:
-            return [self._CWID, self._Name, self._Major, sorted(self._completed_courses), sorted(self._course_require.keys()), "None"]
+            return [self._CWID, self._Name, major, sorted(passed), rem_required, "None"]
 
 
 class Instructor:
@@ -65,15 +66,36 @@ class Course:
 
 class Major:
     PT_FIELDS = ["Dept", "Required", "Elective"]
+    PASSING_GRADES = {'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C'}
     """Define a class to show major"""
-    def __init__(self, name):
-        self._name = name
-        self.required = dict()
-        self.elective = dict()
+    def __init__(self, dept):
+        self._dept = dept
+        self._required = set()
+        self._elective = set()
+
+    def add_course(self, course, type):
+        """Add a new course to major"""
+        if type == 'R':
+            self._required.add(course)
+        elif type == 'E':
+            self._elective.add(course)
+        else:
+            raise ValueError(f"Major.add_course : expected 'R' or 'E' but found '{type}'")
+
+    def remaining(self, completed):
+        """By a list of completed course, get remaining required courses and elective courses"""
+        passed = {course for course, grade in completed.items() if grade in Major.PASSING_GRADES}
+
+        rem_required = self._required - passed
+        if self._elective.intersection(passed):
+            rem_elective = None
+        else:
+            rem_elective = self._elective
+        return self._dept, passed, rem_required, rem_elective
 
     def pt_row(self):
         """Give one line in table of a Major"""
-        return [self._name, sorted(self.required.keys()), sorted(self.elective.keys())]
+        return [self._dept, sorted(self._required), sorted(self._elective)]
 
 
 def file_reading_gen(path, fields=3, sep='\t', header=False):
@@ -99,15 +121,21 @@ class Repository:
         self._students = dict()
         self._instructors = dict()
         self._courses = dict()
-        self._majors = set()
-        self._majors_class = set()
+        self._majors = dict()
+        # self._majors = set()
+        # self._majors_class = set()
         # Read data from file
-        self._get_students(os.path.join(path, "students.txt"))
-        self._get_instructors(os.path.join(path, "instructors.txt"))
-        self._get_grade(os.path.join(path, "grades.txt"))
-        self._get_course(os.path.join(path, "majors.txt"))
-        self._grade_match()
-        self._get_majors()
+        try:
+            self._get_majors(os.path.join(path, "majors.txt"))
+            self._get_students(os.path.join(path, "students.txt"))
+            self._get_instructors(os.path.join(path, "instructors.txt"))
+            self._get_grade(os.path.join(path, "grades.txt"))
+        except FileNotFoundError as fnfe:
+            print(fnfe)
+        except ValueError as ve:
+            print(ve)
+        # self._grade_match()
+        # self._get_majors()
 
         if pttable:
             self._majors_prettytable()
@@ -118,7 +146,10 @@ class Repository:
         """Read students and populate self._students"""
         try:
             for cwid, name, major in file_reading_gen(path, 3, sep=";",header=True):
-                self._students[cwid] = Student(cwid, name, major)
+                if major not in self._majors:
+                    print(f"Student {CWID}'{name}' has unknown major '{major}'")
+                else:
+                    self._students[cwid] = Student(cwid, name, self._majors[major])
         except FileNotFoundError as fnfe:
             print(fnfe)
         except ValueError as ve:
@@ -158,23 +189,17 @@ class Repository:
         try:
             for major,type,course_name in file_reading_gen(path,3,sep='\t',header=True):
                 self._courses[course_name] = Course(course_name, type, major)
-                self._majors.add(major)
         except FileNotFoundError as fnfe:
             print(fnfe)
         except ValueError as ve:
             print(ve)
 
-    def _get_majors(self):
+    def _get_majors(self,path):
         """Add courses in major"""
-        for major in self._majors:
-            self._majors_class.add(Major(major))
-        for major in self._majors_class:
-            for course in self._courses.values():
-                if course._major == major._name:
-                    if course._type == "R":
-                        major.required[course._name] = course
-                    elif course._type == "E":
-                        major.elective[course._name] = course
+        for major, flag, course in file_reading_gen(path, 3,sep='\t',header=True):
+            if major not in self._majors:
+                self._majors[major] = Major(major)
+            self._majors[major].add_course(course, flag)
 
     def _grade_match(self):
         """March grade for all students"""
@@ -210,7 +235,7 @@ class Repository:
     def _majors_prettytable(self):
         """Print major summary"""
         pt = PrettyTable(field_names=Major.PT_FIELDS)
-        for major in self._majors_class:
+        for major in self._majors.values():
             pt.add_row(major.pt_row())
 
         print("Major summary")
