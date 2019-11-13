@@ -37,9 +37,15 @@ class Student:
         """Give one line in table of a student"""
         major, passed, rem_required, rem_electives = self._Major.remaining(self._course_rank)
         if rem_electives is not None:
-            return [self._CWID, self._Name, major, sorted(passed), rem_required, rem_electives]
+            if len(rem_required) == 0:
+                return [self._CWID, self._Name, major, sorted(passed), "None", rem_electives]
+            else:
+                return [self._CWID, self._Name, major, sorted(passed), rem_required, rem_electives]
         else:
-            return [self._CWID, self._Name, major, sorted(passed), rem_required, "None"]
+            if len(rem_required) == 0:
+                return [self._CWID, self._Name, major, sorted(passed), "None", "None"]
+            else:
+                return [self._CWID, self._Name, major, sorted(passed), rem_required, "None"]
 
 
 class Instructor:
@@ -128,6 +134,7 @@ class Repository:
         self._instructors = dict()
         self._courses = dict()
         self._majors = dict()
+        self.pttable = pttable
         # self._majors = set()
         # self._majors_class = set()
         # Read data from file
@@ -229,12 +236,13 @@ class Repository:
     def _students_prettytable(self):
         """Print student table"""
         pt = PrettyTable(field_names=Student.PT_FIELDS)
-
+        list_s = list()
         for student in self._students.values():
             pt.add_row(student.pt_row())
-
+            list_s.append(student.pt_row())
         print("Student summary")
         print(pt)
+        print(list_s)
 
     def _instructors_prettytable(self):
         """Print instructors table"""
@@ -259,10 +267,15 @@ class Repository:
         """create a new instructor PrettyTable that retrieves the data for the table from the database"""
         db = sqlite3.connect(db_path)
         pt = PrettyTable(field_names=Instructor.PT_FIELDS)
+        instructor_summary = list()
         for row in db.execute("select CWID,Name,Dept,Courses,Students from Instructors_summary"):
             pt.add_row(list(row))
-        print("Instructor summary from database")
-        print(pt)
+            instructor_summary.append(list(row))
+        if self.pttable:
+            print("Instructor summary from database")
+            print(pt)
+            print(instructor_summary)
+        return instructor_summary
 
 
 def main():
