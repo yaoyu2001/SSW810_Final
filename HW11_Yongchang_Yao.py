@@ -242,7 +242,7 @@ class Repository:
             list_s.append(student.pt_row())
         print("Student summary")
         print(pt)
-        print(list_s)
+        # print(list_s)
 
     def _instructors_prettytable(self):
         """Print instructors table"""
@@ -274,7 +274,7 @@ class Repository:
         if self.pttable:
             print("Instructor summary from database")
             print(pt)
-            print(instructor_summary)
+            # print(instructor_summary)
         return instructor_summary
 
 
