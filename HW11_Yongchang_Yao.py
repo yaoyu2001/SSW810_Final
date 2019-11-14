@@ -117,7 +117,7 @@ def file_reading_gen(path, fields=3, sep='\t', header=False):
 class Repository:
     def __init__(self, path, pttable=False):
         # Connect to database
-        DB_FILE = "G:\Interview\Data\810_startup.db"
+        DB_FILE = "G:\Interview\Data\810_startup_Yongchang_Yao.db"
         db = sqlite3.connect(DB_FILE)
         # Containers to store data
         self._students = dict()
@@ -270,7 +270,7 @@ class Repository:
 def main():
     """Get paths"""
     directory = os.getcwd()
-    DB_FILE = "G:\Interview\Data\810_startup.db"
+    DB_FILE = "G:\Interview\Data\810_startup_Yongchang_Yao.db"
     stevens = Repository(directory, pttable=True)
     stevens.instructor_table_db(DB_FILE)
 
