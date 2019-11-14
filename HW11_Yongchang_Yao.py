@@ -23,16 +23,6 @@ class Student:
     def add_course(self, course, grade):
         self._course_rank[course] = grade
 
-    # def course_match(self):
-    #     """According to grade and type to get courses list of a student"""
-    #     for name, grade in self._course_rank.items():
-    #         if grade in ['A', 'A-', 'B+', 'B', 'B-', 'C+','C']:
-    #             self._completed_courses.add(name)
-    #             if name in self._course_require.keys():
-    #                 self._course_require.pop(name)
-    #             if name in self._course_elective.keys():
-    #                 self._course_elective = None
-
     def pt_row(self):
         """Give one line in table of a student"""
         major, passed, rem_required, rem_electives = self._Major.remaining(self._course_rank)
@@ -135,8 +125,7 @@ class Repository:
         self._courses = dict()
         self._majors = dict()
         self.pttable = pttable
-        # self._majors = set()
-        # self._majors_class = set()
+
         # Read data from file
         try:
             self._get_majors(os.path.join(path, "majors.txt"))
@@ -242,7 +231,7 @@ class Repository:
             list_s.append(student.pt_row())
         print("Student summary")
         print(pt)
-        # print(list_s)
+
 
     def _instructors_prettytable(self):
         """Print instructors table"""
@@ -274,7 +263,7 @@ class Repository:
         if self.pttable:
             print("Instructor summary from database")
             print(pt)
-            # print(instructor_summary)
+
         return instructor_summary
 
 
@@ -284,6 +273,7 @@ def main():
     DB_FILE = "G:\Interview\Data\810_startup.db"
     stevens = Repository(directory, pttable=True)
     stevens.instructor_table_db(DB_FILE)
+
 
 if __name__ == '__main__':
     main()
