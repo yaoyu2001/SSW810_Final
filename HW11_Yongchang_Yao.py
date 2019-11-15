@@ -254,16 +254,21 @@ class Repository:
 
     def instructor_table_db(self, db_path):
         """create a new instructor PrettyTable that retrieves the data for the table from the database"""
-        db = sqlite3.connect(db_path)
-        pt = PrettyTable(field_names=Instructor.PT_FIELDS)
-        instructor_summary = list()
-        for row in db.execute("select CWID,Name,Dept,Courses,Students from Instructors_summary"):
-            pt.add_row(list(row))
-            instructor_summary.append(list(row))
-        if self.pttable:
-            print("Instructor summary from database")
-            print(pt)
-
+        try:
+            db = sqlite3.connect(db_path)
+        except sqlite3.OperationalError:
+            print(f"Error: Unable to open database at {db_path}")
+        else:
+            pt = PrettyTable(field_names=Instructor.PT_FIELDS)
+            instructor_summary = set()
+            for row in db.execute("""select i.CWID,i.Name,i.Dept,g.Course,count(*) as Students from grades g join instructors i on g.InstructorCWID=i.CWID
+                                     group by i.CWID,i.Name,i.Dept,g.Course"""):
+                pt.add_row(list(row))
+                instructor_summary.add(row)
+            if self.pttable:
+                print("Instructor summary from database")
+                print(pt)
+                # print(instructor_summary)
         return instructor_summary
 
 

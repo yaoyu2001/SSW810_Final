@@ -64,8 +64,9 @@ class TestHomework11(unittest.TestCase):
                 self.assertEqual(major._elective, {'CS 501', 'CS 546'})
         """Test instructor summary from database"""
         DB_FILE = "G:\Interview\Data\810_startup_Yongchang_Yao.db"
-        instructor_list = stevens.instructor_table_db(DB_FILE)
-        self.assertEqual(instructor_list, [['98764', 'Cohen, R', 'SFEN', 'CS 546', '1'], ['98763', 'Rowland, J', 'SFEN', 'SSW 810', '4'], ['98763', 'Rowland, J', 'SFEN', 'SSW 555', '1'], ['98762', 'Hawking, S', 'CS', 'CS 501', '1'], ['98762', 'Hawking, S', 'CS', 'CS 546', '1'], ['98762', 'Hawking, S', 'CS', 'CS 570', '1']])
+        instructor_summary = stevens.instructor_table_db(DB_FILE)  # This method return a set include instructor summary
+        self.assertEqual(instructor_summary, {('98762', 'Hawking, S', 'CS', 'CS 570', 1), ('98764', 'Cohen, R', 'SFEN', 'CS 546', 1), ('98763', 'Rowland, J', 'SFEN', 'SSW 555', 1), ('98762', 'Hawking, S', 'CS', 'CS 546', 1), ('98763', 'Rowland, J', 'SFEN', 'SSW 810', 4), ('98762', 'Hawking, S', 'CS', 'CS 501', 1)})
+
 
 if __name__ == '__main__':
     # note: there is no main(). Only test cases here
