@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import sqlite3
+import os
 
 app = Flask(__name__)
 
@@ -9,9 +10,12 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/instructor_courses')
+@app.route('/instructors')
 def template_demo():
-    db_path = "G:\Interview\Data\810_startup_Yongchang_Yao.db"
+    path = os.getcwd()
+    # Get data from Database
+    # db_path = "G:\Interview\Data\810_startup_Yongchang_Yao.db"
+    db_path = os.path.join(path, "810_startup_Yongchang_Yao.db")
     try:
         db = sqlite3.connect(db_path)
     except sqlite3.OperationalError:
@@ -22,6 +26,7 @@ def template_demo():
     data = [{'cwid': cwid, 'name': name, 'dept': dept, "courses": courses, "students": students}
                 for cwid, name, dept, courses, students in db.execute(query)]
     db.close()
+    # render HTML
     return render_template('instructors_summary.html', title='Stevens Repository',
                            table_title="Number of student by courses and instructor",students = data)
 
